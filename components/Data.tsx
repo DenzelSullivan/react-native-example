@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-    StyleSheet,
-    View,
-    Text,
-    Image,
-    ScrollView
+    StyleSheet, View, Text, Image, ScrollView,
+    TouchableWithoutFeedback
 } from 'react-native';
+import { withNavigation } from 'react-navigation';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
 type Category = {
     id: string,
@@ -18,7 +18,7 @@ type CategoryState = {
     data: Category[]
 }
 
-export default class Data extends React.Component {
+class Data extends React.Component {
 
     state: CategoryState = {
         data: []
@@ -28,10 +28,17 @@ export default class Data extends React.Component {
         fetch('https://www.themealdb.com/api/json/v1/1/categories.php')
             .then((response) => response.json())
             .then((json) => {
-                // console.log(json.categories[0])
                 this.setState({ data: json.categories });
             })
             .catch((error) => console.error(error))
+    }
+
+    onClick(data: Category){
+        this.props.navigation.navigate('DataInfo', {
+            title: data.strCategory,
+            imageUrl: data.strCategoryThumb,
+            description: data.strCategoryDescription
+        })
     }
 
     render() {
@@ -39,18 +46,23 @@ export default class Data extends React.Component {
             <>
                 <ScrollView>
                     {this.state.data.map(category => (
-                        <View key={category.id} style={styles.view}>
-                            <Image
-                                style={styles.img}
-                                source={{ uri: category.strCategoryThumb }} />
-                            <Text style={styles.text}>{category.strCategory}</Text>
-                        </View>
+                        <TouchableWithoutFeedback
+                            onPress={() => this.onClick(category)}>
+                            <View key={category.id} style={styles.view}>
+                                <Image
+                                    style={styles.img}
+                                    source={{ uri: category.strCategoryThumb }} />
+                                <Text style={styles.text}>{category.strCategory}</Text>
+                            </View>
+                        </TouchableWithoutFeedback>
                     ))}
                 </ScrollView>
             </>
         )
     }
 }
+
+export default withNavigation(Data);
 
 const styles = StyleSheet.create({
     view: {
@@ -59,12 +71,13 @@ const styles = StyleSheet.create({
     },
     img: {
         width: 75,
-        height: 75,
-        margin: 3,
+        height: 65,
         resizeMode: 'contain'
     },
     text: {
         fontSize: 22,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        alignSelf: 'center',
+        marginStart: 10
     }
 });
